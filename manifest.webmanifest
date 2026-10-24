@@ -1,6 +1,6 @@
 {
-  "name": "Tim’s Yields",
-  "short_name": "Yields",
+  "name": "Rates",
+  "short_name": "Rates",
   "description": "5, 7 and 10-year Treasury yields and SOFR, updated daily.",
   "start_url": "./",
   "scope": "./",

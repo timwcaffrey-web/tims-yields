@@ -1,4 +1,4 @@
-# Tim’s Yields
+# Rates
 
 A home-screen web app showing the 5, 7 and 10-year Treasury par yields and SOFR (plus its 30-day average). It works without the Claude app.
 
