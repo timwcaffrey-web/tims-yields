@@ -85,6 +85,12 @@ body::before {
 .cr-sig { text-align: center; margin: 8px 0 -8px; color: var(--ink-muted); font-size: .8rem; }
 .cr-sig strong { font-family: var(--serif); font-weight: 400; font-size: 1.15rem; }
 .cr-sig a { color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; border-bottom: 1px solid var(--ink-line); padding-bottom: 1px; }
+.cr-install { max-width: 26rem; margin: 4px auto 0; padding: 12px 14px; text-align: center; color: var(--ink-muted); font-size: .85rem; line-height: 1.5; background: rgba(255, 255, 255, .28); border: 1px solid var(--ink-line); border-radius: 12px; }
+.cr-install b { color: var(--ink); font-weight: 600; white-space: nowrap; }
+.cr-install svg { width: 14px; height: 14px; vertical-align: -2px; fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.cr-install p { margin: 4px 0 0; font-size: .8rem; }
+/* already opened from the Home Screen: no need for the tip */
+@media (display-mode: standalone) { .cr-install { display: none; } }
 .cr-in { width: 15px; height: 15px; fill: #0a66c2; flex: none; }
 </style>
 </head>
@@ -131,6 +137,11 @@ body::before {
     </div>
   </section>
   <p class="cr-sig">Presented by <a href="https://www.linkedin.com/in/tim-caffrey-a140b194/" target="_blank" rel="noopener"><strong>Tim Caffrey</strong><svg class="cr-in" viewBox="0 0 16 16" aria-label="LinkedIn" role="img"><rect width="16" height="16" rx="3"/><path fill="#fff" d="M3.6 6.2h1.9V12H3.6zM4.55 3.4a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zM6.7 6.2h1.8v.8h.03c.25-.47.87-.96 1.8-.96 1.92 0 2.27 1.26 2.27 2.9V12h-1.9V9.25c0-.66-.01-1.5-.92-1.5-.92 0-1.06.72-1.06 1.45V12H6.7z"/></svg></a></p>
+  <div class="cr-install" id="install">
+    <b>Add rates to your Home Screen</b><br>
+    iPhone: in Safari, tap Share <svg viewBox="0 0 16 16" aria-label="Share"><path d="M8 10V1.5M5 4.5l3-3 3 3M4.5 7H3.5v7.5h9V7h-1"/></svg> → <b>Add to Home Screen</b> → <b>Add</b>
+    <p>Android: in Chrome, tap ⋮ → <b>Add to Home screen</b></p>
+  </div>
   <p class="cr-foot" id="foot">Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York.</p>
 </div>
 <script>
@@ -336,6 +347,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 let lastW = window.innerWidth;
 window.addEventListener('resize', () => { if (window.innerWidth !== lastW) { lastW = window.innerWidth; render(); } });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+if (navigator.standalone) document.getElementById('install').hidden = true;   // older iOS Home Screen launch
 render();
 load();
 </script>
