@@ -83,7 +83,9 @@ body::before {
 .cr-fail { color: var(--muted); padding: 40px 0; text-align: center; }
 .cr-foot { color: var(--ink-muted); font-size: .75rem; text-align: center; }
 .cr-sig { text-align: center; margin: 8px 0 -8px; color: var(--ink-muted); font-size: .8rem; }
-.cr-sig strong { font-family: var(--serif); font-weight: 400; font-size: .95rem; }
+.cr-sig strong { font-family: var(--serif); font-weight: 400; font-size: 1.15rem; }
+.cr-sig a { color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; border-bottom: 1px solid var(--ink-line); padding-bottom: 1px; }
+.cr-in { width: 15px; height: 15px; fill: #0a66c2; flex: none; }
 </style>
 </head>
 <body>
@@ -127,7 +129,7 @@ body::before {
       <div class="cr-chart" id="sofr-chart"></div>
     </div>
   </section>
-  <p class="cr-sig">Presented by <strong>Tim Caffrey</strong></p>
+  <p class="cr-sig">Presented by <a href="https://www.linkedin.com/in/tim-caffrey-a140b194/" target="_blank" rel="noopener"><strong>Tim Caffrey</strong><svg class="cr-in" viewBox="0 0 16 16" aria-label="LinkedIn" role="img"><rect width="16" height="16" rx="3"/><path fill="#fff" d="M3.6 6.2h1.9V12H3.6zM4.55 3.4a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zM6.7 6.2h1.8v.8h.03c.25-.47.87-.96 1.8-.96 1.92 0 2.27 1.26 2.27 2.9V12h-1.9V9.25c0-.66-.01-1.5-.92-1.5-.92 0-1.06.72-1.06 1.45V12H6.7z"/></svg></a></p>
   <p class="cr-foot" id="foot">Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York.</p>
 </div>
 <script>
