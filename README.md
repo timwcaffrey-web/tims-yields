@@ -17,7 +17,7 @@ Sources: U.S. Treasury daily par yield curve and the New York Fed's SOFR / SOFR 
 4. Go to **Settings → Actions → General → Workflow permissions** and choose **Read and write permissions**, so the daily job can save new data.
 5. Under **Actions → Update rates**, click **Run workflow** once to check it works.
 
-Your app will be at https://timwcaffrey-web.github.io/tims-yields/.
+Your app is at https://ratesbytim.com (the old timwcaffrey-web.github.io/tims-yields link redirects there).
 
 ## Put it on your iPhone
 
