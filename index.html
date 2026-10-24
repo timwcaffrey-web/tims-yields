@@ -3,64 +3,67 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Rates</title>
+<title>rates</title>
 <meta name="description" content="5, 7 and 10-year Treasury yields and SOFR, updated daily.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Rates">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0b1626">
+<meta name="apple-mobile-web-app-title" content="rates">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#9fb9d1">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-64.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <style>
 :root {
-  --bg: #f6f8fb; --panel: #ffffff; --fg: #0b1626; --muted: #5b6b80; --line: #dfe5ee;
-  --grid: #e9edf3; --axis: #c3ccd8; --rule: #8a97a8; --ok: #13865f; --bad: #c4372d;
-  --s1: #0f8f73; --s2: #b8862b; --s3: #2f6fd1;
+  /* page: cloudy blue sky, dark ink */
+  --sky-top: #9fb9d1; --sky-bottom: #c9d7e4;
+  --ink: #18242f; --ink-muted: #3d5063; --ink-line: rgba(24, 36, 47, .22);
+  /* boxes: steel grey with light text */
+  --panel: #5d6b78; --panel-deep: #4d5a66; --fg: #f3f6f9; --muted: #c5d0da; --line: rgba(255, 255, 255, .14);
+  --grid: rgba(255, 255, 255, .12); --axis: rgba(255, 255, 255, .30); --rule: rgba(255, 255, 255, .6);
+  --ok: #8ff0c4; --bad: #ffab9e;
+  --s1: #7ff0d0; --s2: #ffd27a; --s3: #bcd8ff;
   --serif: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
   color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0b1626; --panel: #12233a; --fg: #eef3f8; --muted: #9fb0c4; --line: #22385a;
-    --grid: #1b2f4b; --axis: #2d4669; --rule: #6c819c; --ok: #46d6b2; --bad: #ff7a6b;
-    --s1: #46d6b2; --s2: #e2b85c; --s3: #7fb2ff;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0b1626; --panel: #12233a; --fg: #eef3f8; --muted: #9fb0c4; --line: #22385a;
-  --grid: #1b2f4b; --axis: #2d4669; --rule: #6c819c; --ok: #46d6b2; --bad: #ff7a6b;
-  --s1: #46d6b2; --s2: #e2b85c; --s3: #7fb2ff;
-  color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
-  margin: 0; background: var(--bg); color: var(--fg);
-  font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  margin: 0; color: var(--ink); background: var(--sky-bottom);
+  font: 15px/1.45 var(--sans);
   padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
            max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+/* soft cloud wisps over a blue sky, fixed behind the scrolling content */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1;
+  background:
+    radial-gradient(ellipse 60% 18% at 18% 12%, rgba(255, 255, 255, .55), transparent 70%),
+    radial-gradient(ellipse 45% 14% at 78% 26%, rgba(255, 255, 255, .45), transparent 70%),
+    radial-gradient(ellipse 70% 20% at 40% 58%, rgba(255, 255, 255, .35), transparent 70%),
+    radial-gradient(ellipse 55% 16% at 85% 82%, rgba(255, 255, 255, .40), transparent 70%),
+    linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
 }
 .cr { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
 .cr-brand { display: flex; align-items: center; gap: 12px; }
 .cr-logo { width: 56px; height: 56px; border-radius: 14px; flex: none; }
-.cr-brand h1 { font-family: var(--serif); font-weight: 400; font-size: 1.75rem; margin: 0; flex: 1; }
-.cr-refresh { font: inherit; font-size: .8rem; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.cr-brand h1 { font-family: var(--sans); font-weight: 700; font-size: 2.1rem; letter-spacing: -.045em; line-height: 1; margin: 0; flex: 1; }
+.cr-refresh { font: inherit; font-size: .8rem; color: var(--ink-muted); background: rgba(255, 255, 255, .25); border: 1px solid var(--ink-line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
 .cr-refresh[aria-busy="true"] { opacity: .5; }
-.cr-take { color: var(--muted); margin: 8px 0 0; }
-.cr-take span { color: var(--fg); font-variant-numeric: tabular-nums; }
-.cr-live { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: .8rem; font-weight: 500; color: var(--fg); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; }
+.cr-take { color: var(--ink-muted); margin: 8px 0 0; }
+.cr-take span { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.cr-live { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: .8rem; font-weight: 500; color: var(--ink); text-decoration: none; background: rgba(255, 255, 255, .25); border: 1px solid var(--ink-line); border-radius: 999px; padding: 6px 12px; }
+.cr-live::before { background: #1f9d55 !important; }
 .cr-live::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: var(--ok); }
 .cr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 12px; }
 .cr-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: 12px; }
-.cr-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; }
+.cr-card { background: linear-gradient(180deg, var(--panel), var(--panel-deep)); color: var(--fg); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; box-shadow: 0 4px 14px rgba(24, 36, 47, .18); }
 .cr-cardhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .cr-range { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; gap: 2px; }
 .cr-range button { font: inherit; font-size: .8rem; font-variant-numeric: tabular-nums; color: var(--muted); background: transparent; border: 0; border-radius: 999px; padding: 4px 12px; cursor: pointer; }
-.cr-range button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.cr-range button[aria-pressed="true"] { background: var(--fg); color: var(--panel-deep); }
 .cr-card h2 { font-size: 1.05rem; font-weight: 600; margin: 0; }
 .cr-note { color: var(--muted); font-size: .8rem; margin: 4px 0 12px; }
 .cr-label { color: var(--muted); font-size: .8rem; }
@@ -70,23 +73,16 @@ body {
 .cr-chart { position: relative; min-height: 300px; touch-action: pan-y; }
 .cr-chart svg { display: block; }
 .cr-chart svg text { fill: var(--muted); font-size: 12px; }
-.cr-tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.18); padding: 6px 10px; font-size: .8rem; font-variant-numeric: tabular-nums; white-space: nowrap; display: none; }
+.cr-tip { position: absolute; pointer-events: none; background: var(--panel-deep); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.18); padding: 6px 10px; font-size: .8rem; font-variant-numeric: tabular-nums; white-space: nowrap; display: none; }
 .cr-tip .d { color: var(--muted); margin-bottom: 2px; }
 .cr-tip i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
-.cr-scroll { max-height: 420px; overflow: auto; -webkit-overflow-scrolling: touch; }
-.cr table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-.cr th { text-align: right; font-weight: 500; color: var(--muted); font-size: .8rem; padding: 6px 8px; position: sticky; top: 0; background: var(--panel); border-bottom: 1px solid var(--line); }
-.cr td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--grid); }
-.cr th:first-child, .cr td:first-child { text-align: left; white-space: nowrap; }
 @media (max-width: 520px) {
   .cr-tiles { grid-template-columns: 1fr 1fr; }
   .cr-tiles > :last-child { grid-column: span 2; }
-  .cr th, .cr td { padding: 6px 4px; font-size: .85rem; }
-  .cr th { font-size: .75rem; }
 }
 .cr-fail { color: var(--muted); padding: 40px 0; text-align: center; }
-.cr-foot { color: var(--muted); font-size: .75rem; text-align: center; }
-.cr-sig { text-align: center; margin: 8px 0 -8px; color: var(--muted); font-size: .8rem; }
+.cr-foot { color: var(--ink-muted); font-size: .75rem; text-align: center; }
+.cr-sig { text-align: center; margin: 8px 0 -8px; color: var(--ink-muted); font-size: .8rem; }
 .cr-sig strong { font-family: var(--serif); font-weight: 400; font-size: .95rem; }
 </style>
 </head>
@@ -95,7 +91,7 @@ body {
   <header id="summary">
     <div class="cr-brand">
       <img class="cr-logo" alt="" src="icons/icon-180.png">
-      <h1>Rates</h1>
+      <h1>rates</h1>
       <button type="button" class="cr-refresh" id="refresh">Refresh</button>
     </div>
     <p class="cr-take">10-year Treasury at <span data-f="yield">—</span>
@@ -131,16 +127,6 @@ body {
       <div class="cr-chart" id="sofr-chart"></div>
     </div>
   </section>
-  <section class="cr-card" id="history">
-    <h2>Daily history</h2>
-    <p class="cr-note">Most recent first, change in basis points vs. the prior business day</p>
-    <div class="cr-scroll">
-      <table>
-        <thead><tr><th>Date</th><th>5-yr</th><th>7-yr</th><th>10-yr</th><th>10-yr Δ</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </section>
   <p class="cr-sig">Presented by <strong>Tim Caffrey</strong></p>
   <p class="cr-foot" id="foot">Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York.</p>
 </div>
@@ -161,13 +147,6 @@ function latest(treasury) {
     chg_1d_bp: Math.round((last[k] - prev[k]) * 100),
     chg_1m_bp: Math.round((last[k] - month[k]) * 100),
   }));
-}
-// Each day's yields, newest first, with the 10-year change vs the prior business day
-function daily(treasury) {
-  const rows = [...treasury].sort(byDate);
-  return rows.map((r, i) => ({
-    ...r, chg10_bp: i ? Math.round((r.ust10 - rows[i - 1].ust10) * 100) : null,
-  })).reverse();
 }
 // Latest SOFR and 30-day average, with the same day and month changes
 function sofrLatest(sofr) {
@@ -319,20 +298,6 @@ document.querySelector('.cr-range').addEventListener('click', (ev) => {
   drawTreasury();
 });
 
-function fillTable(rows) {
-  const body = document.querySelector('#history tbody');
-  body.replaceChildren();
-  rows.forEach((r) => {
-    const tr = document.createElement('tr');
-    [d3.utcFormat('%-m/%-d/%y')(new Date(r.date + 'T00:00:00Z')), pct(r.ust5), pct(r.ust7), pct(r.ust10), r.chg10_bp == null ? '' : bp(r.chg10_bp)].forEach((t) => {
-      const td = document.createElement('td'); td.textContent = t; tr.appendChild(td);
-    });
-    const last = tr.lastChild;
-    last.className = r.chg10_bp > 0 ? 'cr-up' : r.chg10_bp < 0 ? 'cr-down' : '';
-    body.appendChild(tr);
-  });
-}
-
 function render() {
   const L = DATA ? latest(DATA.treasury) : null;
   const S = DATA ? sofrLatest(DATA.sofr) : null;
@@ -340,7 +305,6 @@ function render() {
   drawTiles(L, S);
   drawTreasury();
   drawLines(document.getElementById('sofr-chart'), FAILED && !DATA, DATA ? toRows(DATA.sofr, ['sofr', 'avg30']) : [], ['SOFR', '30-day avg'], 2);
-  fillTable(DATA ? daily(DATA.treasury) : []);
   const foot = document.getElementById('foot');
   foot.textContent = 'Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York.'
     + (DATA ? ' Data updated ' + new Date(DATA.updated).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) + '.' : '')
