@@ -117,6 +117,7 @@ body::before {
           <button type="button" data-range="12M">12M</button>
           <button type="button" data-range="6M">6M</button>
           <button type="button" data-range="3M">3M</button>
+          <button type="button" data-range="1M">1M</button>
           <button type="button" data-range="1W">1W</button>
         </div>
       </div>
@@ -229,7 +230,9 @@ function drawLines(box, failed, rows, names, dp) {
   const slots = Math.floor((W - m.l - m.r) / 60);
   const xt = span < 20 * 864e5
     ? rows.map((r) => r.d).filter((_, i, a) => a.length <= Math.max(2, slots) || i % Math.ceil(a.length / slots) === 0)
-    : x.ticks(Math.max(2, Math.floor((W - m.l - m.r) / 90)));
+    : span < 45 * 864e5
+      ? x.ticks(d3.utcMonday.every((W - m.l - m.r) / (span / 6048e5) >= 55 ? 1 : 2))   // ~1 month: weekly marks
+      : x.ticks(Math.max(2, Math.floor((W - m.l - m.r) / 90)));
   svg.append('g').selectAll('text').data(xt).join('text')
     .attr('x', x).attr('y', H - 6).attr('text-anchor', 'middle').text(span > 200 * 864e5 ? d3.utcFormat("%b '%y") : d3.utcFormat('%b %-d'));
   svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', H - 24).attr('y2', H - 24).attr('stroke', 'var(--axis)');
@@ -278,14 +281,14 @@ const toRows = (data, keys) => data.map((r) => ({
 let DATA = null, FAILED = false;
 let ustRange = '3M';
 try { ustRange = localStorage.getItem('ustRange') || ustRange; } catch (e) {}
-const RANGE_NAMES = { '1W': 'past week', '3M': 'past 3 months', '6M': 'past 6 months', '12M': 'past 12 months' };
+const RANGE_NAMES = { '1W': 'past week', '1M': 'past month', '3M': 'past 3 months', '6M': 'past 6 months', '12M': 'past 12 months' };
 
 function drawTreasury() {
   let rows = DATA ? toRows(DATA.treasury, ['ust5', 'ust7', 'ust10']) : [];
   if (rows.length) {
     const end = rows[rows.length - 1].d;
     const start = ustRange === '1W' ? d3.utcDay.offset(end, -7)
-      : d3.utcMonth.offset(end, -{ '3M': 3, '6M': 6, '12M': 12 }[ustRange]);
+      : d3.utcMonth.offset(end, -{ '1M': 1, '3M': 3, '6M': 6, '12M': 12 }[ustRange]);
     rows = rows.filter((r) => r.d >= start);
   }
   document.querySelectorAll('.cr-range button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.range === ustRange)));
