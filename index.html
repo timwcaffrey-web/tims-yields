@@ -48,12 +48,10 @@ body::before {
 }
 .cr { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
 .cr-brand { display: flex; align-items: center; gap: 12px; }
-.cr-logo { width: 60px; height: 60px; flex: none; }
-.cr-brand h1 { font-family: var(--sans); font-weight: 700; font-size: 2.1rem; letter-spacing: -.045em; line-height: 1; margin: 0; flex: 1; }
+.cr-logo { width: 88px; height: 88px; flex: none; margin: -6px -4px -6px -6px; }
+.cr-brand h1 { flex: 1; font-family: var(--sans); font-weight: 700; font-size: 3.5rem; letter-spacing: -.055em; line-height: 1; margin: 0 0 6px; }
 .cr-refresh { font: inherit; font-size: .8rem; color: var(--ink-muted); background: rgba(255, 255, 255, .25); border: 1px solid var(--ink-line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
 .cr-refresh[aria-busy="true"] { opacity: .5; }
-.cr-take { color: var(--ink-muted); margin: 8px 0 0; }
-.cr-take span { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 .cr-live { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: .8rem; font-weight: 500; color: var(--ink); text-decoration: none; background: rgba(255, 255, 255, .25); border: 1px solid var(--ink-line); border-radius: 999px; padding: 6px 12px; }
 .cr-live::before { background: #1f9d55 !important; }
 .cr-live::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: var(--ok); }
@@ -82,7 +80,12 @@ body::before {
 }
 .cr-fail { color: var(--muted); padding: 40px 0; text-align: center; }
 .cr-foot { color: var(--ink-muted); font-size: .75rem; text-align: center; }
-.cr-sig { text-align: center; margin: 8px 0 -8px; color: var(--ink-muted); font-size: .8rem; }
+.cr-sig { margin: 8px 0 0; color: var(--ink-muted); font-size: .85rem; }
+.cr-sig a { white-space: nowrap; }
+@media (max-width: 360px) {
+  .cr-logo { width: 74px; height: 74px; }
+  .cr-brand h1 { font-size: 2.9rem; }
+}
 .cr-sig strong { font-family: var(--serif); font-weight: 400; font-size: 1.15rem; }
 .cr-sig a { color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; border-bottom: 1px solid var(--ink-line); padding-bottom: 1px; }
 .cr-install { max-width: 26rem; margin: 4px auto 0; padding: 12px 14px; text-align: center; color: var(--ink-muted); font-size: .85rem; line-height: 1.5; background: rgba(255, 255, 255, .28); border: 1px solid var(--ink-line); border-radius: 12px; }
@@ -102,10 +105,7 @@ body::before {
       <h1>rates</h1>
       <button type="button" class="cr-refresh" id="refresh">Refresh</button>
     </div>
-    <p class="cr-take">10-year Treasury at <span data-f="yield">—</span>
-      as of <span data-f="date">—</span>,
-      <span data-f="chg_1d_bp">—</span> bp on the day and
-      <span data-f="chg_1m_bp">—</span> bp over the past month.</p>
+    <p class="cr-sig">Presented by <a href="https://www.linkedin.com/in/tim-caffrey-a140b194/" target="_blank" rel="noopener"><strong>Tim Caffrey</strong><svg class="cr-in" viewBox="0 0 16 16" aria-label="LinkedIn" role="img"><rect width="16" height="16" rx="3"/><path fill="#fff" d="M3.6 6.2h1.9V12H3.6zM4.55 3.4a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zM6.7 6.2h1.8v.8h.03c.25-.47.87-.96 1.8-.96 1.92 0 2.27 1.26 2.27 2.9V12h-1.9V9.25c0-.66-.01-1.5-.92-1.5-.92 0-1.06.72-1.06 1.45V12H6.7z"/></svg></a></p>
     <a class="cr-live" href="https://www.cnbc.com/quotes/US5Y,US7Y,US10Y" target="_blank" rel="noopener">Live 5 · 7 · 10-yr quotes on CNBC ↗</a>
   </header>
   <section class="cr-tiles" id="tiles">
@@ -136,7 +136,6 @@ body::before {
       <div class="cr-chart" id="sofr-chart"></div>
     </div>
   </section>
-  <p class="cr-sig">Presented by <a href="https://www.linkedin.com/in/tim-caffrey-a140b194/" target="_blank" rel="noopener"><strong>Tim Caffrey</strong><svg class="cr-in" viewBox="0 0 16 16" aria-label="LinkedIn" role="img"><rect width="16" height="16" rx="3"/><path fill="#fff" d="M3.6 6.2h1.9V12H3.6zM4.55 3.4a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zM6.7 6.2h1.8v.8h.03c.25-.47.87-.96 1.8-.96 1.92 0 2.27 1.26 2.27 2.9V12h-1.9V9.25c0-.66-.01-1.5-.92-1.5-.92 0-1.06.72-1.06 1.45V12H6.7z"/></svg></a></p>
   <div class="cr-install" id="install">
     <b>Add rates to your Home Screen</b><br>
     iPhone: in Safari, tap Share <svg viewBox="0 0 16 16" aria-label="Share"><path d="M8 10V1.5M5 4.5l3-3 3 3M4.5 7H3.5v7.5h9V7h-1"/></svg> → <b>Add to Home Screen</b> → <b>Add</b>
@@ -173,14 +172,6 @@ function sofrLatest(sofr) {
       chg_1d_bp: Math.round((last[k] - prev[k]) * 100),
       chg_1m_bp: Math.round((last[k] - month[k]) * 100),
     };
-  });
-}
-
-function drawHeader(L) {
-  const r = L && L.find((x) => x.tenor === '10-year');
-  document.querySelectorAll('.cr-take [data-f]').forEach((el) => {
-    const f = el.dataset.f;
-    el.textContent = !r ? '—' : f === 'yield' ? pct(r.yield) : f === 'date' ? dfmt(r.date) : bp(r[f]);
   });
 }
 
@@ -317,7 +308,6 @@ document.querySelector('.cr-range').addEventListener('click', (ev) => {
 function render() {
   const L = DATA ? latest(DATA.treasury) : null;
   const S = DATA ? sofrLatest(DATA.sofr) : null;
-  drawHeader(L);
   drawTiles(L, S);
   drawTreasury();
   drawLines(document.getElementById('sofr-chart'), FAILED && !DATA, DATA ? toRows(DATA.sofr, ['sofr', 'avg30']) : [], ['SOFR', '30-day avg'], 2);
