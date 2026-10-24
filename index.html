@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tim’s Yields</title>
+<meta name="description" content="5, 7 and 10-year Treasury yields and SOFR, updated daily.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tim’s Yields">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b1626">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+:root {
+  --bg: #f6f8fb; --panel: #ffffff; --fg: #0b1626; --muted: #5b6b80; --line: #dfe5ee;
+  --grid: #e9edf3; --axis: #c3ccd8; --rule: #8a97a8; --ok: #13865f; --bad: #c4372d;
+  --s1: #0f8f73; --s2: #b8862b; --s3: #2f6fd1;
+  --serif: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1626; --panel: #12233a; --fg: #eef3f8; --muted: #9fb0c4; --line: #22385a;
+    --grid: #1b2f4b; --axis: #2d4669; --rule: #6c819c; --ok: #46d6b2; --bad: #ff7a6b;
+    --s1: #46d6b2; --s2: #e2b85c; --s3: #7fb2ff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b1626; --panel: #12233a; --fg: #eef3f8; --muted: #9fb0c4; --line: #22385a;
+  --grid: #1b2f4b; --axis: #2d4669; --rule: #6c819c; --ok: #46d6b2; --bad: #ff7a6b;
+  --s1: #46d6b2; --s2: #e2b85c; --s3: #7fb2ff;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+           max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.cr { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.cr-brand { display: flex; align-items: center; gap: 12px; }
+.cr-logo { width: 56px; height: 56px; border-radius: 14px; flex: none; }
+.cr-brand h1 { font-family: var(--serif); font-weight: 400; font-size: 1.75rem; margin: 0; flex: 1; }
+.cr-refresh { font: inherit; font-size: .8rem; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.cr-refresh[aria-busy="true"] { opacity: .5; }
+.cr-take { color: var(--muted); margin: 8px 0 0; }
+.cr-take span { color: var(--fg); font-variant-numeric: tabular-nums; }
+.cr-live { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: .8rem; font-weight: 500; color: var(--fg); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; }
+.cr-live::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: var(--ok); }
+.cr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 12px; }
+.cr-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: 12px; }
+.cr-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; }
+.cr-cardhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.cr-range { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; gap: 2px; }
+.cr-range button { font: inherit; font-size: .8rem; font-variant-numeric: tabular-nums; color: var(--muted); background: transparent; border: 0; border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+.cr-range button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.cr-card h2 { font-size: 1.05rem; font-weight: 600; margin: 0; }
+.cr-note { color: var(--muted); font-size: .8rem; margin: 4px 0 12px; }
+.cr-label { color: var(--muted); font-size: .8rem; }
+.cr-big { font-family: var(--serif); font-size: 1.9rem; font-variant-numeric: tabular-nums; margin: 2px 0; }
+.cr-chg { font-size: .8rem; font-variant-numeric: tabular-nums; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
+.cr-up { color: var(--bad); } .cr-down { color: var(--ok); }
+.cr-chart { position: relative; min-height: 300px; touch-action: pan-y; }
+.cr-chart svg { display: block; }
+.cr-chart svg text { fill: var(--muted); font-size: 12px; }
+.cr-tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.18); padding: 6px 10px; font-size: .8rem; font-variant-numeric: tabular-nums; white-space: nowrap; display: none; }
+.cr-tip .d { color: var(--muted); margin-bottom: 2px; }
+.cr-tip i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
+.cr-scroll { max-height: 420px; overflow: auto; -webkit-overflow-scrolling: touch; }
+.cr table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.cr th { text-align: right; font-weight: 500; color: var(--muted); font-size: .8rem; padding: 6px 8px; position: sticky; top: 0; background: var(--panel); border-bottom: 1px solid var(--line); }
+.cr td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--grid); }
+.cr th:first-child, .cr td:first-child { text-align: left; white-space: nowrap; }
+@media (max-width: 520px) {
+  .cr-tiles { grid-template-columns: 1fr 1fr; }
+  .cr-tiles > :last-child { grid-column: span 2; }
+  .cr th, .cr td { padding: 6px 4px; font-size: .85rem; }
+  .cr th { font-size: .75rem; }
+}
+.cr-fail { color: var(--muted); padding: 40px 0; text-align: center; }
+.cr-foot { color: var(--muted); font-size: .75rem; text-align: center; }
+</style>
+</head>
+<body>
+<div class="cr">
+  <header id="summary">
+    <div class="cr-brand">
+      <img class="cr-logo" alt="" src="icons/icon-180.png">
+      <h1>Tim’s Yields</h1>
+      <button type="button" class="cr-refresh" id="refresh">Refresh</button>
+    </div>
+    <p class="cr-take">10-year Treasury at <span data-f="yield">—</span>
+      as of <span data-f="date">—</span>,
+      <span data-f="chg_1d_bp">—</span> bp on the day and
+      <span data-f="chg_1m_bp">—</span> bp over the past month.</p>
+    <a class="cr-live" href="https://www.cnbc.com/quotes/US5Y,US7Y,US10Y" target="_blank" rel="noopener">Live 5 · 7 · 10-yr quotes on CNBC ↗</a>
+  </header>
+  <section class="cr-tiles" id="tiles">
+    <div class="cr-card" data-tenor="5-year"></div>
+    <div class="cr-card" data-tenor="7-year"></div>
+    <div class="cr-card" data-tenor="10-year"></div>
+    <div class="cr-card" data-sofr="SOFR"></div>
+    <div class="cr-card" data-sofr="30-day average"></div>
+  </section>
+  <section class="cr-grid">
+    <div class="cr-card" id="curve">
+      <div class="cr-cardhead">
+        <h2>Treasury yields</h2>
+        <div class="cr-range" role="group" aria-label="Chart range">
+          <button type="button" data-range="12M">12M</button>
+          <button type="button" data-range="6M">6M</button>
+          <button type="button" data-range="3M">3M</button>
+          <button type="button" data-range="1W">1W</button>
+        </div>
+      </div>
+      <p class="cr-note" id="ust-note">Daily par yield curve, constant-maturity, %</p>
+      <div class="cr-chart" id="ust-chart"></div>
+    </div>
+    <div class="cr-card" id="sofr">
+      <h2>SOFR</h2>
+      <p class="cr-note">Daily SOFR and its 30-day average (New York Fed), %</p>
+      <div class="cr-chart" id="sofr-chart"></div>
+    </div>
+  </section>
+  <section class="cr-card" id="history">
+    <h2>Daily history</h2>
+    <p class="cr-note">Most recent first, change in basis points vs. the prior business day</p>
+    <div class="cr-scroll">
+      <table>
+        <thead><tr><th>Date</th><th>5-yr</th><th>7-yr</th><th>10-yr</th><th>10-yr Δ</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+  <p class="cr-foot" id="foot">Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York.</p>
+</div>
+<script>
+const COLORS = ['var(--s1)', 'var(--s2)', 'var(--s3)'];
+const byDate = (a, b) => String(a.date).localeCompare(String(b.date));
+const pct = (v) => Number(v).toFixed(2) + '%';
+const bp = (v) => (v > 0 ? '+' : '') + v;
+const dfmt = (s) => d3.utcFormat('%b %-d, %Y')(new Date(s + 'T00:00:00Z'));
+const failLine = (el) => { el.replaceChildren(); const d = document.createElement('div'); d.className = 'cr-fail'; d.textContent = 'Couldn’t load data'; el.appendChild(d); };
+
+// Latest yield per tenor, with change in bp vs the prior day and vs ~21 business days earlier
+function latest(treasury) {
+  const rows = [...treasury].sort(byDate);
+  const n = rows.length, last = rows[n - 1], prev = rows[n - 2], month = rows[Math.max(0, n - 22)];
+  return [['5-year', 'ust5'], ['7-year', 'ust7'], ['10-year', 'ust10']].map(([tenor, k]) => ({
+    tenor, date: last.date, yield: last[k],
+    chg_1d_bp: Math.round((last[k] - prev[k]) * 100),
+    chg_1m_bp: Math.round((last[k] - month[k]) * 100),
+  }));
+}
+// Each day's yields, newest first, with the 10-year change vs the prior business day
+function daily(treasury) {
+  const rows = [...treasury].sort(byDate);
+  return rows.map((r, i) => ({
+    ...r, chg10_bp: i ? Math.round((r.ust10 - rows[i - 1].ust10) * 100) : null,
+  })).reverse();
+}
+// Latest SOFR and 30-day average, with the same day and month changes
+function sofrLatest(sofr) {
+  const rows = [...sofr].sort(byDate);
+  return [['SOFR', 'sofr'], ['30-day average', 'avg30']].map(([measure, k]) => {
+    const s = rows.filter((r) => r[k] != null);
+    const n = s.length, last = s[n - 1], prev = s[n - 2], month = s[Math.max(0, n - 22)];
+    return {
+      measure, date: last.date, value: Math.round(last[k] * 100) / 100,
+      chg_1d_bp: Math.round((last[k] - prev[k]) * 100),
+      chg_1m_bp: Math.round((last[k] - month[k]) * 100),
+    };
+  });
+}
+
+function drawHeader(L) {
+  const r = L && L.find((x) => x.tenor === '10-year');
+  document.querySelectorAll('.cr-take [data-f]').forEach((el) => {
+    const f = el.dataset.f;
+    el.textContent = !r ? '—' : f === 'yield' ? pct(r.yield) : f === 'date' ? dfmt(r.date) : bp(r[f]);
+  });
+}
+
+function tile(card, label, row, field) {
+  card.replaceChildren();
+  const lab = document.createElement('div'); lab.className = 'cr-label'; lab.textContent = label;
+  const big = document.createElement('div'); big.className = 'cr-big';
+  const chg = document.createElement('div'); chg.className = 'cr-chg';
+  card.append(lab, big, chg);
+  if (!row) { big.textContent = '—'; return lab; }
+  big.textContent = pct(row[field]);
+  [['chg_1d_bp', ' bp day'], ['chg_1m_bp', ' bp month']].forEach(([f, suffix]) => {
+    const s = document.createElement('span');
+    const v = document.createElement('span');
+    v.textContent = bp(row[f]);
+    v.className = row[f] > 0 ? 'cr-up' : row[f] < 0 ? 'cr-down' : '';
+    s.append(v, document.createTextNode(suffix));
+    chg.appendChild(s);
+  });
+  return lab;
+}
+
+function drawTiles(L, S) {
+  document.querySelectorAll('.cr-tiles [data-tenor]').forEach((card) => {
+    const tenor = card.dataset.tenor;
+    tile(card, tenor + ' Treasury', L && L.find((x) => x.tenor === tenor), 'yield');
+  });
+  document.querySelectorAll('.cr-tiles [data-sofr]').forEach((card) => {
+    const m = card.dataset.sofr;
+    const row = S && S.find((x) => x.measure === m);
+    const lab = tile(card, m === 'SOFR' ? 'SOFR' : 'SOFR 30-day avg', row, 'value');
+    if (row) lab.append(' · ' + d3.utcFormat('%b %-d')(new Date(row.date + 'T00:00:00Z')));
+  });
+}
+
+// rows: [{d, date, v: [numbers or null]}]; names: series labels; dp: decimals in labels
+function drawLines(box, failed, rows, names, dp) {
+  box.replaceChildren();
+  if (failed) return failLine(box);
+  if (!rows.length) return;
+  const ok = (v) => v !== null && v !== undefined && !Number.isNaN(v);
+  const fv = (v) => v.toFixed(dp) + '%';
+  const W = Math.max(280, box.clientWidth), H = 300;
+  const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+  const all = rows.flatMap((r) => r.v.filter(ok));
+  const y = d3.scaleLinear([d3.min(all) - 0.05, d3.max(all) + 0.05], [H - 24, 8]).nice();
+  const yTicks = y.ticks(5);
+  const lastIdx = names.map((_, i) => { for (let k = rows.length - 1; k >= 0; k--) if (ok(rows[k].v[i])) return k; return -1; });
+  const endText = names.map((n, i) => `${n} ${fv(rows[lastIdx[i]].v[i])}`);
+  const measure = (t) => { const p = svg.append('text').text(t); const w = p.node().getComputedTextLength(); p.remove(); return w; };
+  const m = { l: d3.max(yTicks, (v) => measure(v.toFixed(2) + '%')) + 10, r: d3.max(endText, measure) + 10 };
+  const x = d3.scaleUtc(d3.extent(rows, (r) => r.d), [m.l, W - m.r]);
+  svg.append('g').selectAll('line').data(yTicks).join('line')
+    .attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'var(--grid)');
+  svg.append('g').selectAll('text').data(yTicks).join('text')
+    .attr('x', m.l - 6).attr('y', y).attr('dy', '0.32em').attr('text-anchor', 'end').text((v) => v.toFixed(2) + '%');
+  const span = x.domain()[1] - x.domain()[0];
+  const slots = Math.floor((W - m.l - m.r) / 60);
+  const xt = span < 20 * 864e5
+    ? rows.map((r) => r.d).filter((_, i, a) => a.length <= Math.max(2, slots) || i % Math.ceil(a.length / slots) === 0)
+    : x.ticks(Math.max(2, Math.floor((W - m.l - m.r) / 90)));
+  svg.append('g').selectAll('text').data(xt).join('text')
+    .attr('x', x).attr('y', H - 6).attr('text-anchor', 'middle').text(span > 200 * 864e5 ? d3.utcFormat("%b '%y") : d3.utcFormat('%b %-d'));
+  svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', H - 24).attr('y2', H - 24).attr('stroke', 'var(--axis)');
+  names.forEach((_, i) => {
+    svg.append('path').datum(rows.filter((r) => ok(r.v[i]))).attr('fill', 'none').attr('stroke', COLORS[i]).attr('stroke-width', 2)
+      .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round')
+      .attr('d', d3.line().x((r) => x(r.d)).y((r) => y(r.v[i])));
+  });
+  const ends = names.map((_, i) => ({ i, y: y(rows[lastIdx[i]].v[i]) })).sort((a, b) => a.y - b.y);
+  for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 14) ends[k].y = ends[k - 1].y + 14;
+  ends.forEach((e) => svg.append('text').attr('x', W - m.r + 6).attr('y', e.y).attr('dy', '0.32em')
+    .style('fill', COLORS[e.i]).text(endText[e.i]));
+  const tip = document.createElement('div'); tip.className = 'cr-tip'; box.appendChild(tip);
+  const rule = svg.append('line').attr('y1', 8).attr('y2', H - 24).attr('stroke', 'var(--rule)').style('display', 'none');
+  const dots = names.map((_, i) => svg.append('circle').attr('r', 4).attr('fill', COLORS[i]).style('display', 'none'));
+  const bis = d3.bisector((r) => r.d).center;
+  const hide = () => { tip.style.display = 'none'; rule.style('display', 'none'); dots.forEach((d) => d.style('display', 'none')); };
+  svg.append('rect').attr('x', m.l).attr('y', 0).attr('width', W - m.l - m.r).attr('height', H - 24).attr('fill', 'transparent')
+    .on('pointermove pointerdown', (ev) => {
+      const [px] = d3.pointer(ev);
+      const r = rows[bis(rows, x.invert(px))];
+      const cx = x(r.d);
+      rule.attr('x1', cx).attr('x2', cx).style('display', null);
+      dots.forEach((dt, i) => ok(r.v[i]) ? dt.attr('cx', cx).attr('cy', y(r.v[i])).style('display', null) : dt.style('display', 'none'));
+      tip.replaceChildren();
+      const d = document.createElement('div'); d.className = 'd'; d.textContent = dfmt(r.date); tip.appendChild(d);
+      r.v.forEach((v, i) => {
+        if (!ok(v)) return;
+        const line = document.createElement('div'); const sw = document.createElement('i'); sw.style.background = COLORS[i];
+        line.append(sw, document.createTextNode(`${names[i]}  ${fv(v)}`)); tip.appendChild(line);
+      });
+      tip.style.display = 'block';
+      const scale = box.clientWidth / W;
+      const left = cx * scale + 12, tw = tip.offsetWidth;
+      tip.style.left = (left + tw > box.clientWidth ? cx * scale - tw - 12 : left) + 'px';
+      tip.style.top = '8px';
+    })
+    .on('pointerleave pointercancel', hide);
+}
+
+const toRows = (data, keys) => data.map((r) => ({
+  d: new Date(r.date + 'T00:00:00Z'), date: r.date,
+  v: keys.map((k) => (r[k] == null ? null : Number(r[k]))),
+})).sort((a, b) => a.d - b.d);
+
+let DATA = null, FAILED = false;
+let ustRange = '3M';
+try { ustRange = localStorage.getItem('ustRange') || ustRange; } catch (e) {}
+const RANGE_NAMES = { '1W': 'past week', '3M': 'past 3 months', '6M': 'past 6 months', '12M': 'past 12 months' };
+
+function drawTreasury() {
+  let rows = DATA ? toRows(DATA.treasury, ['ust5', 'ust7', 'ust10']) : [];
+  if (rows.length) {
+    const end = rows[rows.length - 1].d;
+    const start = ustRange === '1W' ? d3.utcDay.offset(end, -7)
+      : d3.utcMonth.offset(end, -{ '3M': 3, '6M': 6, '12M': 12 }[ustRange]);
+    rows = rows.filter((r) => r.d >= start);
+  }
+  document.querySelectorAll('.cr-range button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.range === ustRange)));
+  document.getElementById('ust-note').textContent = 'Daily par yield curve, ' + RANGE_NAMES[ustRange] + ', %';
+  drawLines(document.getElementById('ust-chart'), FAILED && !DATA, rows, ['5-yr', '7-yr', '10-yr'], 2);
+}
+document.querySelector('.cr-range').addEventListener('click', (ev) => {
+  const b = ev.target.closest('button[data-range]');
+  if (!b) return;
+  ustRange = b.dataset.range;
+  try { localStorage.setItem('ustRange', ustRange); } catch (e) {}
+  drawTreasury();
+});
+
+function fillTable(rows) {
+  const body = document.querySelector('#history tbody');
+  body.replaceChildren();
+  rows.forEach((r) => {
+    const tr = document.createElement('tr');
+    [d3.utcFormat('%-m/%-d/%y')(new Date(r.date + 'T00:00:00Z')), pct(r.ust5), pct(r.ust7), pct(r.ust10), r.chg10_bp == null ? '' : bp(r.chg10_bp)].forEach((t) => {
+      const td = document.createElement('td'); td.textContent = t; tr.appendChild(td);
+    });
+    const last = tr.lastChild;
+    last.className = r.chg10_bp > 0 ? 'cr-up' : r.chg10_bp < 0 ? 'cr-down' : '';
+    body.appendChild(tr);
+  });
+}
+
+function render() {
+  const L = DATA ? latest(DATA.treasury) : null;
+  const S = DATA ? sofrLatest(DATA.sofr) : null;
+  drawHeader(L);
+  drawTiles(L, S);
+  drawTreasury();
+  drawLines(document.getElementById('sofr-chart'), FAILED && !DATA, DATA ? toRows(DATA.sofr, ['sofr', 'avg30']) : [], ['SOFR', '30-day avg'], 2);
+  fillTable(DATA ? daily(DATA.treasury) : []);
+  const foot = document.getElementById('foot');
+  foot.textContent = 'Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York.'
+    + (DATA ? ' Data updated ' + new Date(DATA.updated).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) + '.' : '')
+    + (FAILED && DATA ? ' Offline — showing saved data.' : '');
+}
+
+async function load() {
+  const btn = document.getElementById('refresh');
+  btn.setAttribute('aria-busy', 'true');
+  try {
+    const r = await fetch('data/rates.json', { cache: 'no-cache' });
+    if (!r.ok) throw new Error(r.status);
+    DATA = await r.json();
+    FAILED = false;
+  } catch (e) {
+    FAILED = true;
+  }
+  btn.removeAttribute('aria-busy');
+  render();
+}
+
+document.getElementById('refresh').addEventListener('click', load);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') load(); });
+let lastW = window.innerWidth;
+window.addEventListener('resize', () => { if (window.innerWidth !== lastW) { lastW = window.innerWidth; render(); } });
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+render();
+load();
+</script>
+</body>
+</html>
