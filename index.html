@@ -10,6 +10,18 @@
 <meta name="apple-mobile-web-app-title" content="rates">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#9fb9d1">
+<script>
+// Seasonal looks switch on and off by date (inclusive, month-day); ?theme=halloween previews one, ?theme=none forces the normal look
+(function () {
+  var SEASONS = [{ name: 'halloween', from: '10-28', to: '11-01', color: '#1c1033' }];
+  var q = new URLSearchParams(location.search).get('theme');
+  var d = new Date(), md = ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  var s = SEASONS.filter(function (x) { return q ? x.name === q : md >= x.from && md <= x.to; })[0];
+  if (!s) return;
+  document.documentElement.dataset.season = s.name;
+  document.querySelector('meta[name="theme-color"]').content = s.color;
+})();
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-64.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
@@ -98,14 +110,40 @@ body::before {
 /* already opened from the Home Screen: no need for the tip */
 @media (display-mode: standalone) { .cr-install { display: none; } }
 .cr-in { width: 15px; height: 15px; fill: #0a66c2; flex: none; }
+.cr-logo-wrap { position: relative; flex: none; display: flex; }
+.cr-bats { display: none; }
+
+/* ---- Halloween: dusk sky, charcoal boxes with an orange edge, a moon and bats ---- */
+:root[data-season="halloween"] {
+  --sky-top: #1c1033; --sky-bottom: #9a4527;
+  --ink: #fbefe2; --ink-muted: #e3cbb8; --ink-line: rgba(255, 228, 205, .28);
+  --panel: #2f2b35; --panel-deep: #1f1c25; --fg: #f7efe6; --muted: #cdbfb3; --line: rgba(255, 138, 45, .5);
+  --ok: #a3e67f; --bad: #ff8f7c;
+  --s1: #ff9a3c; --s2: #c7a0ff; --s3: #a3e67f;
+  color-scheme: dark;
+}
+[data-season="halloween"] body::before {
+  background:
+    radial-gradient(ellipse 70% 14% at 20% 40%, rgba(255, 255, 255, .06), transparent 70%),
+    radial-gradient(ellipse 60% 12% at 80% 70%, rgba(255, 255, 255, .05), transparent 70%),
+    linear-gradient(180deg, var(--sky-top) 0%, #45204f 45%, var(--sky-bottom) 100%);
+}
+[data-season="halloween"] .cr-card { box-shadow: 0 4px 18px rgba(0, 0, 0, .35); }
+[data-season="halloween"] .cr-refresh { background: rgba(28, 16, 51, .7); }
+[data-season="halloween"] .cr-live,
+[data-season="halloween"] .cr-install { background: rgba(255, 255, 255, .08); }
+.cr-word { position: relative; display: inline-block; }
+[data-season="halloween"] .cr-bats { display: block; position: absolute; left: 100%; top: -18px; width: 60px; margin-left: -6px; overflow: visible; pointer-events: none; }
 </style>
 </head>
 <body>
 <div class="cr">
   <header id="summary">
     <div class="cr-brand">
-      <img class="cr-logo" alt="" src="icons/logo.png">
-      <h1>rates</h1>
+      <span class="cr-logo-wrap">
+        <img class="cr-logo" alt="" src="icons/logo.png">
+      </span>
+      <h1><span class="cr-word">rates<svg class="cr-bats" viewBox="-6 -9 60 48" aria-hidden="true"><defs><radialGradient id="glow"><stop offset=".45" stop-color="#ffecbe" stop-opacity=".4"/><stop offset="1" stop-color="#ffecbe" stop-opacity="0"/></radialGradient></defs><circle cx="24" cy="15" r="30" fill="url(#glow)"/><circle cx="24" cy="15" r="14" fill="#fff4d8"/><g fill="#120b18"><path d="M12 9c-.8 0-1.3.8-1.3 1.2-.9-.6-2.2-.6-3 .3-.5-1.1-2.2-2.2-4.4-1.9 1.3.9 1.7 2.2 1.4 3.4 1.2-.6 2.5-.4 3.2.4.6-.6 1.9-.6 2.6.2l1.5 1.6 1.5-1.6c.7-.8 2-.8 2.6-.2.7-.8 2-1 3.2-.4-.3-1.2.1-2.5 1.4-3.4-2.2-.3-3.9.8-4.4 1.9-.8-.9-2.1-.9-3-.3 0-.4-.5-1.2-1.3-1.2zM11.2 9.4l-.4-1.4.9 1.1zM12.8 9.4l.4-1.4-.9 1.1z"/><path transform="translate(22 10) scale(.75)" d="M12 9c-.8 0-1.3.8-1.3 1.2-.9-.6-2.2-.6-3 .3-.5-1.1-2.2-2.2-4.4-1.9 1.3.9 1.7 2.2 1.4 3.4 1.2-.6 2.5-.4 3.2.4.6-.6 1.9-.6 2.6.2l1.5 1.6 1.5-1.6c.7-.8 2-.8 2.6-.2.7-.8 2-1 3.2-.4-.3-1.2.1-2.5 1.4-3.4-2.2-.3-3.9.8-4.4 1.9-.8-.9-2.1-.9-3-.3 0-.4-.5-1.2-1.3-1.2z"/></g></svg></span></h1>
       <button type="button" class="cr-refresh" id="refresh">Refresh</button>
     </div>
     <p class="cr-sig">Presented by <a href="https://www.linkedin.com/in/tim-caffrey-a140b194/" target="_blank" rel="noopener"><strong>Tim Caffrey</strong><svg class="cr-in" viewBox="0 0 16 16" aria-label="LinkedIn" role="img"><rect width="16" height="16" rx="3"/><path fill="#fff" d="M3.6 6.2h1.9V12H3.6zM4.55 3.4a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zM6.7 6.2h1.8v.8h.03c.25-.47.87-.96 1.8-.96 1.92 0 2.27 1.26 2.27 2.9V12h-1.9V9.25c0-.66-.01-1.5-.92-1.5-.92 0-1.06.72-1.06 1.45V12H6.7z"/></svg></a></p>
@@ -222,6 +260,15 @@ function drawTiles(L, S) {
   });
 }
 
+// a tiny carved pumpkin centred on (cx, cy), about 12px across
+function jackOLantern(svg, cx, cy) {
+  const g = svg.append('g').attr('transform', `translate(${cx},${cy})`).attr('aria-hidden', 'true');
+  g.append('rect').attr('x', -0.9).attr('y', -7.4).attr('width', 1.8).attr('height', 2.6).attr('rx', 0.6).attr('fill', '#5f8f2f');
+  [-2.7, 2.7, 0].forEach((dx) => g.append('ellipse').attr('cx', dx).attr('rx', dx ? 3.6 : 3.3).attr('ry', 5.2)
+    .attr('fill', '#ff8a2d').attr('stroke', '#c2560f').attr('stroke-width', 0.7));
+  g.append('path').attr('fill', '#3a1604').attr('d', 'M-3.1-1.2h1.9l-.95-1.8zM1.2-1.2h1.9l-.95-1.8zM-3 1.1q3 2.8 6 0l-1.1.5-.8-.5-1.1.8-1.1-.8-.8.5z');
+}
+
 // rows: [{d, date, v: [numbers or null]}]; names: series labels; dp: decimals in labels
 function drawLines(box, failed, rows, names, dp) {
   box.replaceChildren();
@@ -237,7 +284,9 @@ function drawLines(box, failed, rows, names, dp) {
   const lastIdx = names.map((_, i) => { for (let k = rows.length - 1; k >= 0; k--) if (ok(rows[k].v[i])) return k; return -1; });
   const endText = names.map((n, i) => `${n} ${fv(rows[lastIdx[i]].v[i])}`);
   const measure = (t) => { const p = svg.append('text').text(t); const w = p.node().getComputedTextLength(); p.remove(); return w; };
-  const m = { l: d3.max(yTicks, (v) => measure(v.toFixed(2) + '%')) + 10, r: d3.max(endText, measure) + 10 };
+  const spooky = document.documentElement.dataset.season === 'halloween';   // jack-o'-lanterns mark the line ends
+  const lanternGap = spooky ? 9 : 0;
+  const m = { l: d3.max(yTicks, (v) => measure(v.toFixed(2) + '%')) + 10, r: d3.max(endText, measure) + 10 + lanternGap };
   const x = d3.scaleUtc(d3.extent(rows, (r) => r.d), [m.l, W - m.r]);
   svg.append('g').selectAll('line').data(yTicks).join('line')
     .attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'var(--grid)');
@@ -260,9 +309,18 @@ function drawLines(box, failed, rows, names, dp) {
       .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round')
       .attr('d', d3.line().x((r) => x(r.d)).y((r) => y(r.v[i])));
   });
+  if (spooky) {
+    const placed = [];   // lines ending at nearly the same point share one pumpkin
+    names.forEach((_, i) => {
+      const r = rows[lastIdx[i]], px = x(r.d), py = y(r.v[i]);
+      if (placed.some(([qx, qy]) => Math.hypot(px - qx, py - qy) < 8)) return;
+      placed.push([px, py]);
+      jackOLantern(svg, px, py);
+    });
+  }
   const ends = names.map((_, i) => ({ i, y: y(rows[lastIdx[i]].v[i]) })).sort((a, b) => a.y - b.y);
   for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 14) ends[k].y = ends[k - 1].y + 14;
-  ends.forEach((e) => svg.append('text').attr('x', W - m.r + 6).attr('y', e.y).attr('dy', '0.32em')
+  ends.forEach((e) => svg.append('text').attr('x', W - m.r + 6 + lanternGap).attr('y', e.y).attr('dy', '0.32em')
     .style('fill', COLORS[e.i]).text(endText[e.i]));
   const tip = document.createElement('div'); tip.className = 'cr-tip'; box.appendChild(tip);
   const rule = svg.append('line').attr('y1', 8).attr('y2', H - 24).attr('stroke', 'var(--rule)').style('display', 'none');
