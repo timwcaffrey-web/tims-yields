@@ -50,8 +50,8 @@ def treasury(today):
 
 
 def sofr(today):
-    """Daily SOFR and the 30-day average for the past ~4 months."""
-    start = (today - dt.timedelta(days=120)).replace(day=1)
+    """Daily SOFR and the 30-day average for the past ~12 months."""
+    start = today - dt.timedelta(days=380)
     q = dict(start=start.isoformat(), end=today.isoformat())
     rows = {}
     for r in json.loads(get(NYFED_URL.format(kind="sofr", **q)))["refRates"]:

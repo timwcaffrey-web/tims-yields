@@ -79,7 +79,10 @@ body::before {
   .cr-tiles > :last-child { grid-column: span 2; }
 }
 .cr-fail { color: var(--muted); padding: 40px 0; text-align: center; }
-.cr-foot { color: var(--ink-muted); font-size: .75rem; text-align: center; }
+.cr-foot { color: var(--ink-muted); font-size: .75rem; line-height: 1.5; text-align: center; max-width: 34rem; margin: 0 auto; }
+.cr-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 10px; }
+.cr-meta .cr-live { margin-top: 0; }
+.cr-daily { color: var(--ink-muted); font-size: .8rem; }
 .cr-sig { margin: 8px 0 0; color: var(--ink-muted); font-size: .85rem; }
 .cr-sig a { white-space: nowrap; }
 @media (max-width: 360px) {
@@ -106,7 +109,10 @@ body::before {
       <button type="button" class="cr-refresh" id="refresh">Refresh</button>
     </div>
     <p class="cr-sig">Presented by <a href="https://www.linkedin.com/in/tim-caffrey-a140b194/" target="_blank" rel="noopener"><strong>Tim Caffrey</strong><svg class="cr-in" viewBox="0 0 16 16" aria-label="LinkedIn" role="img"><rect width="16" height="16" rx="3"/><path fill="#fff" d="M3.6 6.2h1.9V12H3.6zM4.55 3.4a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zM6.7 6.2h1.8v.8h.03c.25-.47.87-.96 1.8-.96 1.92 0 2.27 1.26 2.27 2.9V12h-1.9V9.25c0-.66-.01-1.5-.92-1.5-.92 0-1.06.72-1.06 1.45V12H6.7z"/></svg></a></p>
-    <a class="cr-live" href="https://www.cnbc.com/quotes/US5Y,US7Y,US10Y" target="_blank" rel="noopener">Live 5 · 7 · 10-yr quotes on CNBC ↗</a>
+    <div class="cr-meta">
+      <span class="cr-daily">Rates update once each business day, not live.</span>
+      <a class="cr-live" href="https://www.cnbc.com/quotes/US5Y,US7Y,US10Y" target="_blank" rel="noopener">Live 5 · 7 · 10-yr quotes on CNBC ↗</a>
+    </div>
   </header>
   <section class="cr-tiles" id="tiles">
     <div class="cr-card" data-tenor="5-year"></div>
@@ -119,7 +125,7 @@ body::before {
     <div class="cr-card" id="curve">
       <div class="cr-cardhead">
         <h2>Treasury yields</h2>
-        <div class="cr-range" role="group" aria-label="Chart range">
+        <div class="cr-range" role="group" aria-label="Treasury chart range" data-chart="ust">
           <button type="button" data-range="12M">12M</button>
           <button type="button" data-range="6M">6M</button>
           <button type="button" data-range="3M">3M</button>
@@ -131,8 +137,17 @@ body::before {
       <div class="cr-chart" id="ust-chart"></div>
     </div>
     <div class="cr-card" id="sofr">
-      <h2>SOFR</h2>
-      <p class="cr-note">Daily SOFR and its 30-day average (New York Fed), %</p>
+      <div class="cr-cardhead">
+        <h2>SOFR</h2>
+        <div class="cr-range" role="group" aria-label="SOFR chart range" data-chart="sofr">
+          <button type="button" data-range="12M">12M</button>
+          <button type="button" data-range="6M">6M</button>
+          <button type="button" data-range="3M">3M</button>
+          <button type="button" data-range="1M">1M</button>
+          <button type="button" data-range="1W">1W</button>
+        </div>
+      </div>
+      <p class="cr-note" id="sofr-note">Daily SOFR and its 30-day average (New York Fed), %</p>
       <div class="cr-chart" id="sofr-chart"></div>
     </div>
   </section>
@@ -141,7 +156,7 @@ body::before {
     iPhone: in Safari, tap Share <svg viewBox="0 0 16 16" aria-label="Share"><path d="M8 10V1.5M5 4.5l3-3 3 3M4.5 7H3.5v7.5h9V7h-1"/></svg> → <b>Add to Home Screen</b> → <b>Add</b>
     <p>Android: in Chrome, tap ⋮ → <b>Add to Home screen</b></p>
   </div>
-  <p class="cr-foot" id="foot">Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York.</p>
+  <p class="cr-foot" id="foot">Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York. For informational purposes only. Not investment advice or a commitment to lend.</p>
 </div>
 <script>
 const COLORS = ['var(--s1)', 'var(--s2)', 'var(--s3)'];
@@ -234,9 +249,11 @@ function drawLines(box, failed, rows, names, dp) {
     ? rows.map((r) => r.d).filter((_, i, a) => a.length <= Math.max(2, slots) || i % Math.ceil(a.length / slots) === 0)
     : span < 45 * 864e5
       ? x.ticks(d3.utcMonday.every((W - m.l - m.r) / (span / 6048e5) >= 55 ? 1 : 2))   // ~1 month: weekly marks
-      : x.ticks(Math.max(2, Math.floor((W - m.l - m.r) / 90)));
+      : span > 200 * 864e5
+        ? x.ticks(d3.utcMonth.every((W - m.l - m.r) >= 200 ? 3 : 4))   // ~1 year: quarterly marks
+        : x.ticks(Math.max(2, Math.floor((W - m.l - m.r) / 90)));
   svg.append('g').selectAll('text').data(xt).join('text')
-    .attr('x', x).attr('y', H - 6).attr('text-anchor', 'middle').text(span > 200 * 864e5 ? d3.utcFormat("%b '%y") : d3.utcFormat('%b %-d'));
+    .attr('x', x).attr('y', H - 6).attr('text-anchor', 'middle').text(span > 200 * 864e5 ? (d) => d3.utcFormat(d.getUTCMonth() === 0 ? "%b '%y" : '%b')(d) : d3.utcFormat('%b %-d'));
   svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', H - 24).attr('y2', H - 24).attr('stroke', 'var(--axis)');
   names.forEach((_, i) => {
     svg.append('path').datum(rows.filter((r) => ok(r.v[i]))).attr('fill', 'none').attr('stroke', COLORS[i]).attr('stroke-width', 2)
@@ -281,40 +298,47 @@ const toRows = (data, keys) => data.map((r) => ({
 })).sort((a, b) => a.d - b.d);
 
 let DATA = null, FAILED = false;
-let ustRange = '3M';
-try { ustRange = localStorage.getItem('ustRange') || ustRange; } catch (e) {}
 const RANGE_NAMES = { '1W': 'past week', '1M': 'past month', '3M': 'past 3 months', '6M': 'past 6 months', '12M': 'past 12 months' };
+// each chart: its rows, series, caption and remembered range (stored as `${id}Range`)
+const CHARTS = {
+  ust: { rows: () => DATA && DATA.treasury, keys: ['ust5', 'ust7', 'ust10'], names: ['5-yr', '7-yr', '10-yr'], note: 'Daily par yield curve', range: '3M' },
+  sofr: { rows: () => DATA && DATA.sofr, keys: ['sofr', 'avg30'], names: ['SOFR', '30-day avg'], note: 'Daily SOFR and its 30-day average (New York Fed)', range: '3M' },
+};
+for (const id in CHARTS) { try { CHARTS[id].range = localStorage.getItem(id + 'Range') || CHARTS[id].range; } catch (e) {} }
 
-function drawTreasury() {
-  let rows = DATA ? toRows(DATA.treasury, ['ust5', 'ust7', 'ust10']) : [];
+function drawChart(id) {
+  const c = CHARTS[id];
+  let rows = c.rows() ? toRows(c.rows(), c.keys) : [];
   if (rows.length) {
     const end = rows[rows.length - 1].d;
-    const start = ustRange === '1W' ? d3.utcDay.offset(end, -7)
-      : d3.utcMonth.offset(end, -{ '1M': 1, '3M': 3, '6M': 6, '12M': 12 }[ustRange]);
+    const start = c.range === '1W' ? d3.utcDay.offset(end, -7)
+      : d3.utcMonth.offset(end, -{ '1M': 1, '3M': 3, '6M': 6, '12M': 12 }[c.range]);
     rows = rows.filter((r) => r.d >= start);
   }
-  document.querySelectorAll('.cr-range button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.range === ustRange)));
-  document.getElementById('ust-note').textContent = 'Daily par yield curve, ' + RANGE_NAMES[ustRange] + ', %';
-  drawLines(document.getElementById('ust-chart'), FAILED && !DATA, rows, ['5-yr', '7-yr', '10-yr'], 2);
+  document.querySelectorAll(`.cr-range[data-chart="${id}"] button`).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.range === c.range)));
+  document.getElementById(id + '-note').textContent = `${c.note}, ${RANGE_NAMES[c.range]}, %`;
+  drawLines(document.getElementById(id + '-chart'), FAILED && !DATA, rows, c.names, 2);
 }
-document.querySelector('.cr-range').addEventListener('click', (ev) => {
+document.querySelectorAll('.cr-range').forEach((group) => group.addEventListener('click', (ev) => {
   const b = ev.target.closest('button[data-range]');
   if (!b) return;
-  ustRange = b.dataset.range;
-  try { localStorage.setItem('ustRange', ustRange); } catch (e) {}
-  drawTreasury();
-});
+  const id = group.dataset.chart;
+  CHARTS[id].range = b.dataset.range;
+  try { localStorage.setItem(id + 'Range', b.dataset.range); } catch (e) {}
+  drawChart(id);
+}));
 
 function render() {
   const L = DATA ? latest(DATA.treasury) : null;
   const S = DATA ? sofrLatest(DATA.sofr) : null;
   drawTiles(L, S);
-  drawTreasury();
-  drawLines(document.getElementById('sofr-chart'), FAILED && !DATA, DATA ? toRows(DATA.sofr, ['sofr', 'avg30']) : [], ['SOFR', '30-day avg'], 2);
+  drawChart('ust');
+  drawChart('sofr');
   const foot = document.getElementById('foot');
   foot.textContent = 'Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York.'
-    + (DATA ? ' Data updated ' + new Date(DATA.updated).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) + '.' : '')
-    + (FAILED && DATA ? ' Offline — showing saved data.' : '');
+    + (DATA ? ' Last updated ' + new Date(DATA.updated).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) + '.' : '')
+    + (FAILED && DATA ? ' Offline, showing saved data.' : '')
+    + ' For informational purposes only. Not investment advice or a commitment to lend.';
 }
 
 async function load() {
