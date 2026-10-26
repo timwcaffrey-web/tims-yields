@@ -194,7 +194,7 @@ body::before {
     iPhone: in Safari, tap Share <svg viewBox="0 0 16 16" aria-label="Share"><path d="M8 10V1.5M5 4.5l3-3 3 3M4.5 7H3.5v7.5h9V7h-1"/></svg> → <b>Add to Home Screen</b> → <b>Add</b>
     <p>Android: in Chrome, tap ⋮ → <b>Add to Home screen</b></p>
   </div>
-  <p class="cr-foot" id="foot">Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York. For informational purposes only. Not investment advice or a commitment to lend.</p>
+  <p class="cr-foot" id="foot">Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York. For informational purposes only. Not investment advice or a commitment to lend. Anonymous visit counts via Cloudflare Web Analytics; no cookies.</p>
 </div>
 <script>
 const COLORS = ['var(--s1)', 'var(--s2)', 'var(--s3)'];
@@ -396,7 +396,7 @@ function render() {
   foot.textContent = 'Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York.'
     + (DATA ? ' Last updated ' + new Date(DATA.updated).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) + '.' : '')
     + (FAILED && DATA ? ' Offline, showing saved data.' : '')
-    + ' For informational purposes only. Not investment advice or a commitment to lend.';
+    + ' For informational purposes only. Not investment advice or a commitment to lend. Anonymous visit counts via Cloudflare Web Analytics; no cookies.';
 }
 
 async function load() {
@@ -423,5 +423,6 @@ if (navigator.standalone) document.getElementById('install').hidden = true;   //
 render();
 load();
 </script>
+<!-- Cloudflare Web Analytics: anonymous visit counts, no cookies --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "7664bfebc01f442fa23c28f49ddf0b5b"}'></script>
 </body>
 </html>
