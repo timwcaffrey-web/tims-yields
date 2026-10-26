@@ -1,7 +1,7 @@
 // Network first, saved copy when offline, so the app always opens.
-const CACHE = 'tims-yields-v9';
+const CACHE = 'tims-yields-v10';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/logo.png', 'icons/icon-180.png', 'icons/icon-64.png',
-  'https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js'];
+  'lib/d3.v7.9.0.min.js'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
