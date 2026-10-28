@@ -112,6 +112,8 @@ body::before {
 .cr-install b { color: var(--ink); font-weight: 600; white-space: nowrap; }
 .cr-install svg { width: 14px; height: 14px; vertical-align: -2px; fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .cr-install p { margin: 4px 0 0; font-size: .8rem; }
+.cr-steps { display: inline-block; margin: 6px 0 2px; padding-left: 1.3em; text-align: left; }
+.cr-steps li { margin: 2px 0; }
 /* already opened from the Home Screen: no need for the tip */
 @media (display-mode: standalone) { .cr-install { display: none; } }
 .cr-in { width: 15px; height: 15px; fill: #0a66c2; flex: none; }
@@ -197,8 +199,12 @@ body::before {
     </div>
   </section>
   <div class="cr-install" id="install">
-    <b>Add rates to your Home Screen</b><br>
-    iPhone: in Safari, tap Share <svg viewBox="0 0 16 16" aria-label="Share"><path d="M8 10V1.5M5 4.5l3-3 3 3M4.5 7H3.5v7.5h9V7h-1"/></svg> → <b>Add to Home Screen</b> → <b>Add</b>
+    <b>Add rates to your Home Screen</b>
+    <ol class="cr-steps">
+      <li>In Safari, tap the menu button <svg viewBox="0 0 16 16" aria-label="menu"><path d="M3 4.5h10M3 8h10M3 11.5h10"/></svg> at the left of the address bar (<b>⋯</b> on some iPhones), then <b>Share</b> <svg viewBox="0 0 16 16" aria-label="Share"><path d="M8 10V1.5M5 4.5l3-3 3 3M4.5 7H3.5v7.5h9V7h-1"/></svg></li>
+      <li>Scroll to the bottom and tap <b>Add to Home Screen</b></li>
+      <li>Tap <b>Add</b></li>
+    </ol>
     <p>Android: in Chrome, tap ⋮ → <b>Add to Home screen</b></p>
   </div>
   <p class="cr-foot" id="foot">Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York. For informational purposes only. Anonymous visit counts via Cloudflare Web Analytics; no cookies.</p>
