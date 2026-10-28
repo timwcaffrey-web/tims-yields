@@ -64,9 +64,16 @@ body::before {
 .cr-brand h1 { flex: 1; font-family: var(--sans); font-weight: 700; font-size: 3.5rem; letter-spacing: -.055em; line-height: 1; margin: 0 0 6px; }
 .cr-refresh { font: inherit; font-size: .8rem; color: var(--ink-muted); background: rgba(255, 255, 255, .25); border: 1px solid var(--ink-line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
 .cr-refresh[aria-busy="true"] { opacity: .5; }
-.cr-live { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: .8rem; font-weight: 500; color: var(--ink); text-decoration: none; background: rgba(255, 255, 255, .25); border: 1px solid var(--ink-line); border-radius: 999px; padding: 6px 12px; }
-.cr-live::before { background: #1f9d55 !important; }
-.cr-live::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: var(--ok); }
+/* the CNBC link: a full-width "LIVE" button so nobody misses it */
+.cr-livebar { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 7px 12px; border-radius: 999px; text-decoration: none; color: var(--ink); background: rgba(255, 255, 255, .55); border: 1px solid var(--ink-line); box-shadow: 0 1px 4px rgba(24, 36, 47, .10); font-size: .85rem; font-weight: 600; white-space: nowrap; }
+.cr-short { display: none; }
+@media (max-width: 360px) { .cr-long { display: none; } .cr-short { display: inline; } }
+.cr-livebar-tag { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 999px; background: #1f9d55; color: #fff; font-size: .7rem; font-weight: 700; letter-spacing: .08em; }
+.cr-livebar-tag i { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: cr-pulse 1.6s ease-in-out infinite; }
+@keyframes cr-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .cr-livebar-tag i { animation: none; } }
+.cr-livebar-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.cr-livebar-go { flex: none; font-size: 1rem; line-height: 1; }
 .cr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 12px; }
 .cr-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: 12px; }
 .cr-card { background: linear-gradient(180deg, var(--panel), var(--panel-deep)); color: var(--fg); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; box-shadow: 0 4px 14px rgba(24, 36, 47, .18); }
@@ -92,9 +99,7 @@ body::before {
 }
 .cr-fail { color: var(--muted); padding: 40px 0; text-align: center; }
 .cr-foot { color: var(--ink-muted); font-size: .75rem; line-height: 1.5; text-align: center; max-width: 34rem; margin: 0 auto; }
-.cr-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 10px; }
-.cr-meta .cr-live { margin-top: 0; }
-.cr-daily { color: var(--ink-muted); font-size: .8rem; }
+.cr-daily { margin: 6px 2px 0; color: var(--ink-muted); font-size: .8rem; }
 .cr-sig { margin: 8px 0 0; color: var(--ink-muted); font-size: .85rem; }
 .cr-sig a { white-space: nowrap; }
 @media (max-width: 360px) {
@@ -130,7 +135,7 @@ body::before {
 }
 [data-season="halloween"] .cr-card { box-shadow: 0 4px 18px rgba(0, 0, 0, .35); }
 [data-season="halloween"] .cr-refresh { background: rgba(28, 16, 51, .7); }
-[data-season="halloween"] .cr-live,
+[data-season="halloween"] .cr-livebar,
 [data-season="halloween"] .cr-install { background: rgba(255, 255, 255, .08); }
 .cr-word { position: relative; display: inline-block; }
 [data-season="halloween"] .cr-bats { display: block; position: absolute; left: 100%; top: -18px; width: 60px; margin-left: -6px; overflow: visible; pointer-events: none; }
@@ -147,10 +152,12 @@ body::before {
       <button type="button" class="cr-refresh" id="refresh">Refresh</button>
     </div>
     <p class="cr-sig">Presented by <a href="https://www.linkedin.com/in/tim-caffrey-a140b194/" target="_blank" rel="noopener"><strong>Tim Caffrey</strong><svg class="cr-in" viewBox="0 0 16 16" aria-label="LinkedIn" role="img"><rect width="16" height="16" rx="3"/><path fill="#fff" d="M3.6 6.2h1.9V12H3.6zM4.55 3.4a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zM6.7 6.2h1.8v.8h.03c.25-.47.87-.96 1.8-.96 1.92 0 2.27 1.26 2.27 2.9V12h-1.9V9.25c0-.66-.01-1.5-.92-1.5-.92 0-1.06.72-1.06 1.45V12H6.7z"/></svg></a></p>
-    <div class="cr-meta">
-      <span class="cr-daily">Rates update once each business day, not live.</span>
-      <a class="cr-live" href="https://www.cnbc.com/quotes/US5Y,US7Y,US10Y" target="_blank" rel="noopener">Live 5 · 7 · 10-yr quotes on CNBC ↗</a>
-    </div>
+    <a class="cr-livebar" href="https://www.cnbc.com/quotes/US5Y,US7Y,US10Y" target="_blank" rel="noopener">
+      <span class="cr-livebar-tag"><i></i>LIVE</span>
+      <span class="cr-livebar-text"><span class="cr-long">5, 7 &amp; 10-yr yields on CNBC</span><span class="cr-short">5/7/10-yr on CNBC</span></span>
+      <span class="cr-livebar-go" aria-hidden="true">→</span>
+    </a>
+    <p class="cr-daily">Rates below update once each business day.</p>
   </header>
   <section class="cr-tiles" id="tiles">
     <div class="cr-card" data-tenor="5-year"></div>
