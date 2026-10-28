@@ -74,6 +74,12 @@ body::before {
 @media (prefers-reduced-motion: reduce) { .cr-livebar-tag i { animation: none; } }
 .cr-livebar-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .cr-livebar-go { flex: none; font-size: 1rem; line-height: 1; }
+.cr-livebar[hidden] { display: none; }
+.cr-event { margin-top: 8px; }
+.cr-event .cr-livebar-tag { background: #2f5f8f; }
+.cr-event .cr-livebar-tag i { animation: none; }
+.cr-event.is-live .cr-livebar-tag { background: #d6332b; }
+.cr-event.is-live .cr-livebar-tag i { animation: cr-pulse 1.6s ease-in-out infinite; }
 .cr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 12px; }
 .cr-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: 12px; }
 .cr-card { background: linear-gradient(180deg, var(--panel), var(--panel-deep)); color: var(--fg); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; box-shadow: 0 4px 14px rgba(24, 36, 47, .18); }
@@ -157,6 +163,11 @@ body::before {
     <a class="cr-livebar" href="https://www.cnbc.com/quotes/US5Y,US7Y,US10Y" target="_blank" rel="noopener">
       <span class="cr-livebar-tag"><i></i>LIVE</span>
       <span class="cr-livebar-text"><span class="cr-long">5, 7 &amp; 10-yr yields on CNBC</span><span class="cr-short">5/7/10-yr on CNBC</span></span>
+      <span class="cr-livebar-go" aria-hidden="true">→</span>
+    </a>
+    <a class="cr-livebar cr-event" id="event" target="_blank" rel="noopener" hidden>
+      <span class="cr-livebar-tag"><i></i><span id="event-tag">TODAY</span></span>
+      <span class="cr-livebar-text" id="event-text"></span>
       <span class="cr-livebar-go" aria-hidden="true">→</span>
     </a>
     <p class="cr-daily">Rates below update once each business day.</p>
@@ -439,6 +450,29 @@ let lastW = window.innerWidth;
 window.addEventListener('resize', () => { if (window.innerWidth !== lastW) { lastW = window.innerWidth; render(); } });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 if (navigator.standalone) document.getElementById('install').hidden = true;   // older iOS Home Screen launch
+
+// Scheduled links (e.g. Fed press conferences). Times are exact instants, so each visitor sees their own local time.
+// Preview a moment with ?now=2026-10-28T14:45:00-04:00
+const EVENTS = [
+  { title: 'Fed press conference', url: 'https://www.youtube.com/@federalreserve/live',
+    show: '2026-10-28T06:00:00-04:00', start: '2026-10-28T14:30:00-04:00', end: '2026-10-28T16:30:00-04:00' },
+];
+function drawEvent() {
+  const q = new URLSearchParams(location.search).get('now');
+  const now = q ? Date.parse(q) : Date.now();
+  const e = EVENTS.find((x) => now >= Date.parse(x.show) && now < Date.parse(x.end));
+  const a = document.getElementById('event');
+  a.hidden = !e;
+  if (!e) return;
+  const live = now >= Date.parse(e.start);
+  const at = new Date(e.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  a.href = e.url;
+  a.classList.toggle('is-live', live);
+  document.getElementById('event-tag').textContent = live ? 'LIVE' : 'TODAY';
+  document.getElementById('event-text').textContent = live ? e.title : `${e.title} · ${at}`;
+}
+drawEvent();
+setInterval(drawEvent, 60000);
 render();
 load();
 </script>
