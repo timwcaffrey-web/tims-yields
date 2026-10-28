@@ -41,9 +41,9 @@
   color-scheme: light;
 }
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; }   /* no background here: body's color must carry to the page backdrop, behind the sky */
 body {
-  margin: 0; color: var(--ink); background: var(--sky-bottom);
+  margin: 0; color: var(--ink); background: var(--sky-top);   /* fills the iPhone status-bar strip and overscroll: match the top of the sky */
   font: 15px/1.45 var(--sans);
   padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
            max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
@@ -128,7 +128,7 @@ body::before {
 
 /* ---- Halloween: dusk sky, charcoal boxes with an orange edge, a moon and bats ---- */
 :root[data-season="halloween"] {
-  --sky-top: #1c1033; --sky-bottom: #9a4527;
+  --sky-top: #1c1033; --sky-bottom: #9a4527;   /* deep night purple fading to a dusk-orange glow */
   --ink: #fbefe2; --ink-muted: #e3cbb8; --ink-line: rgba(255, 228, 205, .28);
   --panel: #2f2b35; --panel-deep: #1f1c25; --fg: #f7efe6; --muted: #cdbfb3; --line: rgba(255, 138, 45, .5);
   --ok: #a3e67f; --bad: #ff8f7c;
@@ -139,7 +139,7 @@ body::before {
   background:
     radial-gradient(ellipse 70% 14% at 20% 40%, rgba(255, 255, 255, .06), transparent 70%),
     radial-gradient(ellipse 60% 12% at 80% 70%, rgba(255, 255, 255, .05), transparent 70%),
-    linear-gradient(180deg, var(--sky-top) 0%, #45204f 45%, var(--sky-bottom) 100%);
+    linear-gradient(180deg, var(--sky-top) 0%, #2c1840 30%, #45204f 55%, #6e2c50 78%, var(--sky-bottom) 100%);   /* long, soft blend */
 }
 [data-season="halloween"] .cr-card { box-shadow: 0 4px 18px rgba(0, 0, 0, .35); }
 [data-season="halloween"] .cr-refresh { background: rgba(28, 16, 51, .7); }

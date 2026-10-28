@@ -1,5 +1,5 @@
 // Network first, saved copy when offline, so the app always opens.
-const CACHE = 'tims-yields-v12';
+const CACHE = 'tims-yields-v13';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/logo.png', 'icons/icon-180.png', 'icons/icon-64.png',
   'lib/d3.v7.9.0.min.js'];
 
