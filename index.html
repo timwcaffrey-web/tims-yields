@@ -194,7 +194,7 @@ body::before {
     iPhone: in Safari, tap Share <svg viewBox="0 0 16 16" aria-label="Share"><path d="M8 10V1.5M5 4.5l3-3 3 3M4.5 7H3.5v7.5h9V7h-1"/></svg> → <b>Add to Home Screen</b> → <b>Add</b>
     <p>Android: in Chrome, tap ⋮ → <b>Add to Home screen</b></p>
   </div>
-  <p class="cr-foot" id="foot">Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York. For informational purposes only. Not investment advice or a commitment to lend. Anonymous visit counts via Cloudflare Web Analytics; no cookies.</p>
+  <p class="cr-foot" id="foot">Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York. For informational purposes only. Anonymous visit counts via Cloudflare Web Analytics; no cookies.</p>
 </div>
 <script>
 const COLORS = ['var(--s1)', 'var(--s2)', 'var(--s3)'];
@@ -204,10 +204,21 @@ const bp = (v) => (v > 0 ? '+' : '') + v;
 const dfmt = (s) => d3.utcFormat('%b %-d, %Y')(new Date(s + 'T00:00:00Z'));
 const failLine = (el) => { el.replaceChildren(); const d = document.createElement('div'); d.className = 'cr-fail'; d.textContent = 'Couldn’t load data'; el.appendChild(d); };
 
-// Latest yield per tenor, with change in bp vs the prior day and vs ~21 business days earlier
+// Where a range starts: the last close on or before the same date one period earlier (the standard
+// "1-month change" base). Tiles and charts share it so the change on a tile always matches the chart.
+function rangeStartIndex(dates, range) {
+  const end = new Date(dates[dates.length - 1] + 'T00:00:00Z');
+  const target = (range === '1W' ? d3.utcDay.offset(end, -7)
+    : d3.utcMonth.offset(end, -{ '1M': 1, '3M': 3, '6M': 6, '12M': 12 }[range])).toISOString().slice(0, 10);
+  let i = 0;
+  dates.forEach((d, k) => { if (d <= target) i = k; });
+  return i;
+}
+
+// Latest yield per tenor, with change in bp vs the prior day and vs the close one month earlier
 function latest(treasury) {
   const rows = [...treasury].sort(byDate);
-  const n = rows.length, last = rows[n - 1], prev = rows[n - 2], month = rows[Math.max(0, n - 22)];
+  const n = rows.length, last = rows[n - 1], prev = rows[n - 2], month = rows[rangeStartIndex(rows.map((r) => r.date), '1M')];
   return [['5-year', 'ust5'], ['7-year', 'ust7'], ['10-year', 'ust10']].map(([tenor, k]) => ({
     tenor, date: last.date, yield: last[k],
     chg_1d_bp: Math.round((last[k] - prev[k]) * 100),
@@ -219,7 +230,7 @@ function sofrLatest(sofr) {
   const rows = [...sofr].sort(byDate);
   return [['SOFR', 'sofr'], ['30-day average', 'avg30']].map(([measure, k]) => {
     const s = rows.filter((r) => r[k] != null);
-    const n = s.length, last = s[n - 1], prev = s[n - 2], month = s[Math.max(0, n - 22)];
+    const n = s.length, last = s[n - 1], prev = s[n - 2], month = s[rangeStartIndex(s.map((r) => r.date), '1M')];
     return {
       measure, date: last.date, value: Math.round(last[k] * 100) / 100,
       chg_1d_bp: Math.round((last[k] - prev[k]) * 100),
@@ -367,12 +378,7 @@ for (const id in CHARTS) { try { CHARTS[id].range = localStorage.getItem(id + 'R
 function drawChart(id) {
   const c = CHARTS[id];
   let rows = c.rows() ? toRows(c.rows(), c.keys) : [];
-  if (rows.length) {
-    const end = rows[rows.length - 1].d;
-    const start = c.range === '1W' ? d3.utcDay.offset(end, -7)
-      : d3.utcMonth.offset(end, -{ '1M': 1, '3M': 3, '6M': 6, '12M': 12 }[c.range]);
-    rows = rows.filter((r) => r.d >= start);
-  }
+  if (rows.length) rows = rows.slice(rangeStartIndex(rows.map((r) => r.date), c.range));
   document.querySelectorAll(`.cr-range[data-chart="${id}"] button`).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.range === c.range)));
   document.getElementById(id + '-note').textContent = `${c.note}, ${RANGE_NAMES[c.range]}, %`;
   drawLines(document.getElementById(id + '-chart'), FAILED && !DATA, rows, c.names, 2);
@@ -396,7 +402,7 @@ function render() {
   foot.textContent = 'Sources: U.S. Treasury daily par yield curve; Federal Reserve Bank of New York.'
     + (DATA ? ' Last updated ' + new Date(DATA.updated).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) + '.' : '')
     + (FAILED && DATA ? ' Offline, showing saved data.' : '')
-    + ' For informational purposes only. Not investment advice or a commitment to lend. Anonymous visit counts via Cloudflare Web Analytics; no cookies.';
+    + ' For informational purposes only. Anonymous visit counts via Cloudflare Web Analytics; no cookies.';
 }
 
 async function load() {
